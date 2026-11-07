@@ -231,15 +231,20 @@ try {
     check("まちがえると ✕ の知らせ（role=status）・その答えは ✕ と取り消し線で押せない", (await p.textContent("#msg")).includes("✕") && (await p.getAttribute("#msg", "role")) === "status" && await p.locator(`#pick button[data-v="${w}"]:disabled.ng .x`).count() === 1);
     await p.click(`#pick button[data-v="${w}"]`, { force: true });
     check("同じ答えをもう一度押しても、まちがいを二度数えない", await p.evaluate(() => __op.cur().wrong.length) === 1);
+    // まちがえたあとのヒントは、まだ押していないまちがいを外す（押した選び肢を外しても★だけ減ることがないように）
+    await p.click("#hint");
+    check("まちがえたあとのヒントは、押していないまちがいを1つ外す", await p.locator("#pick button.cut:not(.ng)").count() === 1 && await p.locator("#pick button:disabled").count() === 2);
+    await p.click("#hint");
+    check("まちがい1つ＋ヒント2回で、残りは答えだけ・ヒントはもう押せない", await p.locator("#pick button:not(:disabled)").count() === 1 && await p.locator("#hint:disabled").count() === 1);
   }
   await p.reload(); await p.waitForTimeout(150); await p.click("#go-d");
-  check("途中で閉じても続きから（同じ問題・まちがえた答えのまま）", await p.evaluate(() => __op.cur().i === 0 && __op.cur().wrong.length === 1) && await p.locator("#pick button.ng").count() === 1);
+  check("途中で閉じても続きから（同じ問題・まちがえた答え・ヒントのまま）", await p.evaluate(() => __op.cur().i === 0 && __op.cur().wrong.length === 1 && __op.cur().hints === 2) && await p.locator("#pick button.ng").count() === 1 && await p.locator("#pick button.cut").count() === 2);
   await solve(p);
   {
     const P0 = G.make(tags[0]);
     const v = await p.textContent(".verdict");
     const T0n = G.titleOf(P0);
-    check("当てると ✓・記号の名前と読み・意味の説明・★2（まちがい1回）", (await p.textContent(".verdict .hd")).includes("✓ 正解") && v.includes(T0n.nm) && v.includes(T0n.sm) && v.includes(G.facts(P0)[0]) && (await p.getAttribute(".verdict .stars", "aria-label")) === "星2つ");
+    check("当てると ✓・記号の名前と読み・意味の説明・★1（まちがい1回＋ヒント2回）", (await p.textContent(".verdict .hd")).includes("✓ 正解") && v.includes(T0n.nm) && v.includes(T0n.sm) && v.includes(G.facts(P0)[0]) && (await p.getAttribute(".verdict .stars", "aria-label")) === "星1つ");
   }
   check("正解したらヒント・答えのボタンは押せない", await p.locator("#hint").isHidden() && await p.locator("#pick button:disabled").count() === 4 && await p.locator("#pick button.yes").count() === 1);
   check("正解の知らせは前からある #msg（role=status）で読ませる・次の操作も言う", /✓ 正解！.*(次の問題へ|結果を見る)/.test(await p.textContent("#msg")));
@@ -287,7 +292,7 @@ try {
   }
   await p.waitForTimeout(150);
   const s1 = await mem(p);
-  check("5問で結果：今日の記録に1問ごとのまちがい＋ヒント（1・2・3・0・2）", JSON.stringify(s1.days[TODAY]?.m) === "[1,2,3,0,2]", JSON.stringify(s1.days[TODAY]?.m));
+  check("5問で結果：今日の記録に1問ごとのまちがい＋ヒント（3・2・3・0・2）", JSON.stringify(s1.days[TODAY]?.m) === "[3,2,3,0,2]", JSON.stringify(s1.days[TODAY]?.m));
   const share = await p.textContent(".share");
   const words = G.dailyTags(TODAY).flatMap((t) => { const P = G.make(t); return [G.titleOf(P).nm, P.p.yomi, P.p.mean]; });
   check("シェアの文に記号・答えを出さない（印だけ）", /第\d+回/.test(share) && /🟢/.test(share) && words.every((n) => !share.includes(n)), share);

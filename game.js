@@ -241,7 +241,7 @@
     return { tag, lv: q.lv, id: q.id, kd: q.kd, key: q.key, input: q.kd === "y", p: k, opts, ans: q.kd === "y" ? -1 : opts.indexOf(ansKey(q)), bigHtml: A.h, bigLabel: A.l, sub: A.sub };
   }
   // 入力の答え：全角・半角・ひらがな・中黒・空白をそろえて読みと比べる
-  const norm = (s) => String(s || "").normalize("NFKC").replace(/[\s　・･.]/g, "").replace(/[ぁ-ゖ]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60)).replace(/ヴ/g, "ヴ");
+  const norm = (s) => String(s || "").normalize("NFKC").replace(/[\s　・･.]/g, "").replace(/[ぁ-ゖ]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60));
   const okInput = (P, s) => P.p.yomis.some((y) => norm(y) === norm(s));
   // 入力のヒント（2回まで）：1回目は字数とはじめの字、2回目は半分の字
   function inputHint(P, n) {

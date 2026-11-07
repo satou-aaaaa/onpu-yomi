@@ -591,6 +591,8 @@ const missOf = () => cur.wrong.length + cur.hints;
 // ヒントで外す選び肢：まちがいのうち、問題の id から決まる順に（だれでも同じ）
 const cutOf = (P) => { const w = P.opts.map((_, i) => i).filter((i) => i !== P.ans); return G.shuffled(w, G.rng(G.seedOf("cut:" + P.id))); };
 // 外す選び肢の数：ヒント1回ごとに1つ（2回まで。残りは2つ）。入力の問題は選び肢が無い
+// ヒントで外すのは、まだ押していないまちがいだけ（押してまちがえた選び肢を外してもヒントにならない）
+const cutLive = (P) => cutOf(P).filter((v) => !cur.wrong.includes(v));
 const cutN = (P, h) => (P.input ? 0 : Math.min(2, h));
 // 入力の問題で、3回まちがえたら答えを見せる（入れれば先へ進める）
 const SHOW = 3;
@@ -632,7 +634,7 @@ function play() {
   toTop();
 }
 function paint() {
-  const P = cur.P, cut = cur.done ? [] : cutOf(P).slice(0, cutN(P, cur.hints));
+  const P = cur.P, cut = cur.done ? [] : cutLive(P).slice(0, cutN(P, cur.hints));
   document.querySelectorAll("#pick button").forEach((b) => {
     const v = +b.dataset.v, w = cur.wrong.includes(v), c = cut.includes(v);
     b.disabled = cur.done || w || c; b.classList.toggle("ng", w); b.classList.toggle("cut", c && !w); b.classList.toggle("yes", cur.done && v === P.ans);
@@ -645,7 +647,7 @@ function paint() {
     $("go").disabled = cur.done; $("go").hidden = cur.done;
     $("tried").textContent = cur.wrong.length && !cur.done ? `まちがえた回数：${cur.wrong.length}` : "";
   }
-  const h = $("hint"); if (h) { h.disabled = cur.done || cur.hints >= 2; h.hidden = cur.done; }
+  const h = $("hint"); if (h) { h.disabled = cur.done || cur.hints >= 2 || (!cur.P.input && cutLive(cur.P).length <= cutN(cur.P, cur.hints)); h.hidden = cur.done; }
   const tips = [];
   if (P.input) {
     if (cur.hints >= 1) tips.push(`${[...P.p.yomi.replace(/・/g, "")].length}字で、はじめは「${P.p.yomi[0]}」：${G.inputHint(P, cur.hints)}`);
@@ -656,7 +658,7 @@ function paint() {
   }
   $("hintbox").innerHTML = tips.length && !cur.done ? `<div class="hint" role="status">💡 ${tips.map(esc).join("<br>💡 ")}</div>` : "";
 }
-function hint() { if (cur.done || cur.hints >= 2) return; cur.hints++; keep(); paint(); }
+function hint() { if (cur.done || cur.hints >= 2 || (!cur.P.input && cutLive(cur.P).length <= cutN(cur.P, cur.hints))) return; cur.hints++; keep(); paint(); }
 function choose(v) {
   if (cur.done || cur.wrong.includes(v)) return;
   if (!same(load().runs[MODE])) { toast("別の画面で先に進んでいます"); return play(); }
