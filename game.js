@@ -103,6 +103,20 @@
     return svg("0 -6 120 116", 110, s, label || "ト音記号の楽譜の音", "staff");
   }
 
+  // 2つの音（音程の問題）。左が低い音、右が高い音
+  function staff2Html(a, b, label) {
+    let s = staff5(120);
+    for (const [x, i] of [[42, a], [86, b]]) {
+      if (i === 0) s += `<line x1="${x - 12}" x2="${x + 12}" y1="80" y2="80" stroke-width="1.4"/>`;
+      if (i === 12) s += `<line x1="${x - 12}" x2="${x + 12}" y1="20" y2="20" stroke-width="1.4"/>`;
+      s += noteBody(x, 80 - i * 5, 1, i < 6);
+    }
+    return svg("0 -6 120 116", 110, s, label || "ト音記号の楽譜の2つの音", "staff");
+  }
+  // 音程の組：低い音 a・高い音 b（2度〜8度）。度は、両はしの音も入れて数える
+  const PAIRS = []; for (let d = 1; d <= 7; d++) for (let a = 0; a + d <= 12; a++) PAIRS.push({ a, b: a + d, n: d + 1 });
+  const degName = (n) => (n === 8 ? "8度（オクターブ）" : `${n}度`);
+
   // ---- 種から決まる乱数（だれでも同じ問題）----
   function seedOf(str) { let h = 2166136261; for (const ch of str) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
   function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -141,7 +155,7 @@
   // やさしい：n＝音符・休符の形 → 名前／b＝形 → 何拍／m＝ドレミ → ハニホ／s＝楽譜 → ドレミ／a＝記号 → 意味／r＝記号 → 読み
   // ふつう：N＝名前 → 形／B＝拍 → 形／h＝ハニホ → ドレミ／e＝ドレミ → 英語の音名／E＝英語 → ドレミ／S＝楽譜 → ハニホ／A＝意味 → 記号／R＝読み → 記号／x＝1小節をうめる（やさしめ）
   // むずかしい：t＝ドレミ → 楽譜／y＝記号 → 読みを入力／X＝1小節をうめる（休符・付点・3つ）
-  const KIND = { n: 0, b: 0, m: 0, s: 0, a: 0, r: 0, N: 1, B: 1, h: 1, e: 1, E: 1, S: 1, A: 1, R: 1, x: 1, t: 2, y: 2, X: 2 };
+  const KIND = { n: 0, b: 0, m: 0, s: 0, a: 0, r: 0, N: 1, B: 1, h: 1, e: 1, E: 1, S: 1, A: 1, R: 1, x: 1, t: 2, y: 2, X: 2, i: 2 };
   const QS = [], QBY = {}, POOL = [[], [], []];
   const addQ = (kd, key, no) => { const id = kd + key, q = { id, lv: KIND[kd], kd, no, key }; QS.push(q); QBY[id] = q; POOL[q.lv].push(id); };
   const G0 = ITEMS.filter((k) => k.g === 0), G1 = ITEMS.filter((k) => k.g === 1), GS = ITEMS.filter((k) => k.g >= 2);
@@ -150,6 +164,8 @@
   for (const kd of ["s", "S", "t"]) for (const p of POS) addQ(kd, p.i, G1[p.step].no);
   for (const kd of ["a", "r", "A", "R", "y"]) for (const k of GS) addQ(kd, k.no, k.no);
   BAR.forEach((b, i) => addQ(b.hard ? "X" : "x", i, noteItem(b.ans, false).no));
+  // 2026-11-07 足した形（最後に足すだけ。id は記録に残る）：むずかしい i＝楽譜の2つの音 → あいだは何度か（63問）
+  PAIRS.forEach((p, i) => addQ("i", i, G1[POS[p.a].step].no));
 
   // 選び肢のしるし：i＝記号の形、n＝名前、y＝読み、m＝意味、b＝拍、d/k/c＝ドレミ/ハニホ/CDE、p＝楽譜の位置
   function optHtml(o) {
@@ -164,6 +180,7 @@
     if (t === "n") return BY[v].nm; if (t === "y") return BY[v].yomi; if (t === "m") return BY[v].mean;
     if (t === "b") return BEAT[v]; if (t === "d") return DO[v]; if (t === "k") return HA[v]; if (t === "c") return EN[v];
     if (t === "p") return "楽譜の音・" + posName(+v);
+    if (t === "o") return degName(+v);
     return o;
   }
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
@@ -194,7 +211,11 @@
     } else if (q.kd === "a") { ans = "m:" + k.no; const seenM = new Set([k.mean]); pick = others(k, R).filter((x) => !seenM.has(x.mean) && seenM.add(x.mean)).slice(0, 3).map((x) => "m:" + x.no); }
     else if (q.kd === "r") { ans = "y:" + k.no; const seenY = new Set(k.yomis); pick = others(k, R).filter((x) => !x.yomis.some((y) => seenY.has(y)) && x.yomis.every((y) => seenY.add(y))).slice(0, 3).map((x) => "y:" + x.no); }
     else if (q.kd === "A" || q.kd === "R") { ans = "i:" + k.no; pick = others(k, R).filter((x) => q.kd === "A" ? x.mean !== k.mean : !x.yomis.some((y) => k.yomis.includes(y))).slice(0, 3).map((x) => "i:" + x.no); }
-    else {
+    else if (q.kd === "i") {
+      // 近い度（となり・2つとなり）を先に
+      const n = PAIRS[q.key].n, near = shuffled([n + 1, n - 1], R), far = shuffled([n + 2, n - 2, n + 3, n - 3], R);
+      ans = "o:" + n; pick = [...near, ...far].filter((x) => x >= 2 && x <= 8).slice(0, 3).map((x) => "o:" + x);
+    } else {
       // 1小節：答えの長さの音符と、ちがう長さの音符3つ
       const b = BAR[q.key];
       ans = "i:" + noteItem(b.ans, false).no; pick = shuffled(BV.filter((v) => v !== b.ans), R).slice(0, 3).map((v) => "i:" + noteItem(v, false).no);
@@ -207,7 +228,7 @@
     if (q.kd === "b") return "b:" + k.v;
     if ("mheE".includes(q.kd)) return { m: "k", h: "d", e: "c", E: "d" }[q.kd] + ":" + k.step;
     if (q.kd === "s") return "d:" + POS[q.key].step; if (q.kd === "S") return "k:" + POS[q.key].step; if (q.kd === "t") return "p:" + q.key;
-    if (q.kd === "a") return "m:" + k.no; if (q.kd === "r") return "y:" + k.no;
+    if (q.kd === "a") return "m:" + k.no; if (q.kd === "r") return "y:" + k.no; if (q.kd === "i") return "o:" + PAIRS[q.key].n;
     return "";
   }
   // 問いの文（大きな絵や字と、その下の小さな字）。h は画面に出す HTML、l は読み上げの文
@@ -230,6 +251,7 @@
       case "r": return { h: symHtml(k), l: symLabel(k), sub: "この記号の読みは？" };
       case "A": return { h: tx(k.mean), l: k.mean, sub: "という意味の記号は？" };
       case "R": return { h: tx(k.yomi), l: k.yomi, sub: "と読む記号は？" };
+      case "i": { const p = PAIRS[q.key], l = `${posName(p.a)}と${posName(p.b)}`; return { h: staff2Html(p.a, p.b, `ト音記号の楽譜の2つの音（${l}）`), l, sub: "2つの音のあいだは何度？（同じ音を1度と数える）" }; }
       case "y": return { h: symHtml(k), l: symLabel(k), sub: "この記号の読みは？（カタカナかひらがなで入力）" };
       default: { const b = BAR[q.key]; return { h: barHtml(b), l: `4分の${b.ts}拍子の小節`, sub: `あと1つで4分の${b.ts}拍子の1小節。入る音符は？` }; }
     }
@@ -259,6 +281,12 @@
       out.push(`あと${BEAT[b.ans]}なので、${k.nm}。`);
       return out;
     }
+    if (P.kd === "i") {
+      const p = PAIRS[P.key], names = []; for (let i = p.a; i <= p.b; i++) names.push(DO[i % 7]);
+      out.push(`${posName(p.a)}から${posName(p.b)}まで、両はしも入れて ${names.join("・")} の${p.n}つなので${p.n}度。`);
+      out.push(p.n === 8 ? "8度はオクターブ。同じ音名で、高さだけがちがう。" : "度は、同じ音を1度として、楽譜の線と間を1つずつ数える。");
+      return out;
+    }
     if (k.g === 0) {
       out.push(`${k.nm}は、4分音符を1拍とすると${k.mean}。`);
       if ([3, 1.5, 0.75].includes(k.v)) out.push(`付点は、もとの長さの半分を足す（${BEAT[k.v / 1.5]}＋${BEAT[k.v / 3]}）。`);
@@ -279,12 +307,13 @@
   }
 
   // 答えの見出し：名前と、その下の小さな字
-  const titleOf = (P) => { const k = P.p; if (k.g === 0) return { nm: k.nm, sm: k.mean }; if (k.g === 1) return { nm: `${DO[k.step]}＝${HA[k.step]}＝${EN[k.step]}`, sm: "ドレミ＝日本の音名＝英語の音名" }; return { nm: `${k.nm}（${k.yomi}）`, sm: k.mean }; };
+  const titleOf = (P) => { const k = P.p; if (P.kd === "i") { const p = PAIRS[P.key]; return { nm: degName(p.n), sm: `${posName(p.a)}と${posName(p.b)}` }; } if (k.g === 0) return { nm: k.nm, sm: k.mean }; if (k.g === 1) return { nm: `${DO[k.step]}＝${HA[k.step]}＝${EN[k.step]}`, sm: "ドレミ＝日本の音名＝英語の音名" }; return { nm: `${k.nm}（${k.yomi}）`, sm: k.mean }; };
   // まちがえた選び肢の説明（その選び肢が何だったか）
   function wrongNote(o) {
     const t = o[0], v = o.slice(2);
     if ("inym".includes(t) && BY[v]) { const k = BY[v]; return k.g === 0 ? `${k.nm}は${k.mean}。` : k.g === 1 ? "" : `${k.nm}は「${k.yomi}」：${k.mean}。`; }
     if (t === "p") return `それは${posName(+v)}。`;
+    if (t === "o") return `${degName(+v)}は、両はしも入れて音を${v}つ数えたとき。`;
     return "";
   }
 
@@ -326,7 +355,7 @@
   const dailyTags = (k) => dayPick(dayIdx(k)).map(([lv, id]) => `${lv}:${id}|d${k}`);
   const hardTags = (k) => hardPick(dayIdx(k)).map(([lv, id]) => `${lv}:${id}|h${k}`);
 
-  const API = { titleOf, wrongNote, posName, LV, AREAS, ITEMS, BY, IDS, QS, QBY, POOL, KIND, BAR, BARS, BEAT, DO, HA, EN, POS, optsOf, optHtml, optLabel, ansKey, symHtml, symLabel, ask, make, norm, okInput, inputHint, facts, seedOf, rng, shuffled, dailyTags, hardTags, dayIdx, EPOCH, dayMs, keyOf, evOf };
+  const API = { PAIRS, degName, titleOf, wrongNote, posName, LV, AREAS, ITEMS, BY, IDS, QS, QBY, POOL, KIND, BAR, BARS, BEAT, DO, HA, EN, POS, optsOf, optHtml, optLabel, ansKey, symHtml, symLabel, ask, make, norm, okInput, inputHint, facts, seedOf, rng, shuffled, dailyTags, hardTags, dayIdx, EPOCH, dayMs, keyOf, evOf };
   if (typeof module === "object" && module.exports) module.exports = API;
   root.ONPU = API;
 })(typeof window !== "undefined" ? window : globalThis);

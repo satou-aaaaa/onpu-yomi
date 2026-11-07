@@ -37,6 +37,7 @@ QA_SHIFT_DAYS=24 node qa/run.mjs   # 日付・カレンダーを変えたとき�
 - 押せる所は高さ44px以上（QA が見る）。一行の式の途中にコメント `//` を足さない。少し遅れて動く処理（setTimeout）は、画面が替わっていたら何もしない。機能を足す・直すたびに `qa/run.mjs` に検査を足す。乱数で組む部分は何年分も作って確かめる（shared-workflows `incidents/2026-10-31-roppo-empty-village.md`）。
 - PWA（`manifest.webmanifest`・`sw.js`・`icon-*.png`）：画面のファイルを足したら `sw.js` の `SHELL` にも足し、中身を大きく変えたら `CACHE` の版を上げる。アイコンは `node tools/make-icons.cjs`（maskable は中を縮めた `icon-maskable-512.png`）、SNS 用の絵 `og.png` は `node tools/make-og.cjs`（今日の問題を入れない）。
 - 公開リポジトリなので、個人情報・鍵を入れない。
+- 音程（`i`、むずかしい、2026-11-07 追加）：楽譜の2つの音（`PAIRS`：`POS` の13の位置から、2度〜8度の63組）のあいだが何度かを選ぶ。度は両はしの音も入れて数え、8度はオクターブと説明する（QA が63問すべてを見る）。
 
 ## 公開
 

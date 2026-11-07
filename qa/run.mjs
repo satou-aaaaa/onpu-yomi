@@ -18,7 +18,12 @@ const check = (name, ok, detail = "") => results.push({ name, ok: !!ok, detail: 
 const req = createRequire(import.meta.url);
 const G = req(path.join(root, "game.js"));
 const idOf = (t) => t.split("|")[0].split(":")[1];
-{ let ng = false; try { G.make("0:y40|x2026-11-07"); } catch (e) { ng = true; } check("難しさと問題の合わないタグは作らない", ng); }
+{ let ng = false; const yid = G.POOL[2].find((x) => G.QBY[x].kd === "y"); try { G.make(`0:${yid}|x2026-11-07`); } catch (e) { ng = true; } check("難しさと問題の合わないタグは作らない（実在する問題で）", !!yid && ng); }
+{ const ids = G.POOL[2].filter((x) => G.QBY[x].kd === "i"); let bad = [];
+  for (const id of ids) { const P = G.make(`2:${id}|x2026-11-07`), pr = G.PAIRS[G.QBY[id].key], labs = P.opts.map(G.optLabel);
+    if (P.opts.length !== 4 || new Set(P.opts).size !== 4 || P.opts[P.ans] !== "o:" + pr.n || !labs[P.ans].startsWith(pr.n + "度") || !G.facts(P)[0].includes(pr.n + "度")) bad.push(id); }
+  check("音程：2度〜8度の63問・答えの度は両はしの音も数えた数・選び肢4つ", ids.length === 63 && bad.length === 0, bad.join());
+  const P = G.make(`2:${ids.find((x) => G.PAIRS[G.QBY[x].key].n === 8)}|x2026-11-07`); check("音程：8度はオクターブと説明する", G.optLabel(P.opts[P.ans]).includes("オクターブ") && G.facts(P).join("").includes("オクターブ")); }
 
 // ---- 1. 記号のデータと問題（ブラウザを使わない）----
 {
