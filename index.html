@@ -647,7 +647,7 @@ function play() {
     $("inp").onsubmit = (e) => { e.preventDefault(); answer($("ans").value); };
   }
   if ($("hint")) $("hint").onclick = hint;
-  if ($("quit")) $("quit").onclick = () => { if (cur && cur.done) return; const r = load().runs.e; if (!r || r.id !== cur.id) { toast("別の画面で先に進んでいます"); return home(); } finish(); }; // 別のタブで始めた新しい回を終わらせない
+  if ($("quit")) $("quit").onclick = () => { const r = load().runs.e; if (!r || r.id !== cur.id) { toast("別の画面で先に進んでいます"); return home(); } finish(); }; // 別のタブで始めた新しい回を終わらせない
   paint();
   toTop();
 }
@@ -711,6 +711,7 @@ function win() {
   // 別のタブで使ったヒント・まちがいも数えてから採点する（keep と同じ合わせ方）
   const s = save((s) => { const r = s.runs[MODE]; if (!same(r)) return; merge(r); r.res.push({ m: missOf() }); r.cur = null; if (r.mode === "e") { r.miss = (r.miss || 0) + missOf(); s.elast = P.id; } s.dex[p.no] = (s.dex[p.no] || 0) + 1; if (P.lv === 2) s.tm = (s.tm || 0) + 1; if (missOf() > 0) s.ng[P.id] = (s.ng[P.id] || 0) + 1; else delete s.ng[P.id]; });
   const r = s.runs[MODE], fin = r && r.mode !== "e" && r.res.length >= r.list.length, st = starsOf(missOf());
+  if ($("quit") && r && r.mode === "e") $("quit").textContent = `ここで降りる（${r.res.length}問で終える）`; // 正解した直後に降りても、その問題を数える（正解はすぐ上の save で保存済み）
   paint();
   $("msg").className = "msg ok"; $("msg").textContent = `✓ 正解！ ${T.nm}。${fin ? "「結果を見る」" : "「次の問題へ」"}で進みます。`; // 前からある知らせの場所で読ませる（入れたばかりの role=status は読まれないことがある）
   $("after").innerHTML = `<div class="verdict">

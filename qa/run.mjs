@@ -522,6 +522,15 @@ try {
     check("キーボードだけ（Tab と Enter）で答えられる", await q.locator(".verdict").count() === 1);
     await q.context().close();
   }
+  // とことん：正解した直後（次へを押す前）でも「ここで降りる」で終われ、正解した1問が数に入る（shared-workflows incidents/2026-11-17-known-game-bugs-spread.md）
+  {
+    const q = await newPage(); await closeHow(q); await q.click("#go-e"); await q.waitForTimeout(150);
+    await solve(q); await q.waitForSelector(".verdict");
+    const lab = (await q.textContent("#quit")) || "";
+    await q.click("#quit"); await q.waitForTimeout(150);
+    check("とことん：正解した直後に降りると、ボタンは「1問で終える」で、結果に1問が入る", lab.includes("1問で終える") && await q.locator("#eres").count() === 1 && (await q.textContent("#eres")).includes("1問"), lab);
+    await q.context().close();
+  }
   // 保存に失敗したら帯 #savewarn で知らせ続け、保存できたら消す（開き直すと記録が消えるのを黙らない。shared-workflows incidents/2026-11-07-save-failure-silent.md）
   {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
