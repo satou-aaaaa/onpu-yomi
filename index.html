@@ -25,7 +25,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Zen+Old+Mincho:wght@600;900&display=swap">
 <style>
-/* 古地図：生成りの紙、墨の文字。選び肢は白い札に緑の縁、問いは朱の縁 */
+/* 古地図：生成りの紙、墨の文字。選択肢は白い札に緑の縁、問いは朱の縁 */
 :root{
   --bg:#f2ecdf; --paper:#fffcf5; --ink:#211c16; --ink2:#4f4639; --line:#211c1624; --border:#8a7d68;
   --green:#285d3c; --green2:#173d26; --mt:#a83a1c; --mt2:#73260f; --red:#a3301c; --gold:#8d6407;
@@ -65,7 +65,7 @@ button.sub:disabled{opacity:.45;cursor:default}
 .stats b{display:block;font-size:20px}
 .stats small{color:var(--ink2);font-size:12px}
 .badge{background:var(--red);color:#fff;border-radius:9px;padding:1px 7px;font-size:12px}
-/* 問題：上に問い、下に選び肢4つ（入力の問題は入力の欄） */
+/* 問題：上に問い、下に選択肢4つ（入力の問題は入力の欄） */
 .yomi{position:relative;background:var(--paper);border:2px solid var(--mt);border-radius:12px;padding:16px 14px 12px;text-align:center;box-shadow:0 3px 0 #211c161a}
 .yomi .lb{position:absolute;left:10px;top:-11px;background:var(--mt);color:#fff;font-size:12px;font-weight:700;border-radius:6px;padding:1px 8px}
 .yomi .qb{margin:4px 0 2px;font-family:var(--f-title);font-weight:900;font-size:40px;letter-spacing:.12em;color:var(--mt2);line-height:1.3;word-break:keep-all}
@@ -167,7 +167,7 @@ dialog a{color:var(--green2);min-height:44px;display:inline-flex;align-items:cen
 .toast{pointer-events:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-weight:700;z-index:9;box-shadow:0 6px 20px #0005;max-width:90%;text-align:center}
 footer{margin-top:auto;text-align:center;font-size:12px;color:var(--ink2);display:flex;gap:4px 14px;justify-content:center;flex-wrap:wrap}
 footer a{color:var(--ink2);min-height:44px;display:inline-flex;align-items:center}
-/* 色の見分けを助ける：選び肢は青、問いは橙（「問い」の字と、まちがい✕・外した選び肢の点線でも分ける） */
+/* 色の見分けを助ける：選択肢は青、問いは橙（「問い」の字と、まちがい✕・外した選択肢の点線でも分ける） */
 html.a11y-cvd{--green:#0b5d91;--green2:#073f63;--red:#b34700;--mt:#a35200;--mt2:#6b3600}
 html.a11y-cvd .yomi{border-style:dashed}
 [hidden]{display:none!important}
@@ -344,7 +344,7 @@ html.a11y-say body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))!i
     <li>下の4つから答えを選びます。「むずかしい」には、記号の読みをカタカナ（ひらがなでも可）で入れる問題があります。</li>
     <li>当てると、その記号の読みと意味が出ます。</li>
   </ol>
-  <p>小学校・中学校の音楽で習う、音符・休符・音の名前・強弱や速さの記号です。楽譜が読めなくても、まちがえながら覚えられます。わからないときはヒントで選び肢を減らせます。</p>
+  <p>小学校・中学校の音楽で習う、音符・休符・音の名前・強弱や速さの記号です。楽譜が読めなくても、まちがえながら覚えられます。わからないときはヒントで選択肢を減らせます。</p>
   <p>今日の5問はだれでも同じで、1日1回。時間制限はありません。練習・とことんは何度でも遊べます。</p>
   <p><a id="fb2" target="_blank" rel="noopener">感想を送る</a></p>
   <button class="main" id="howto-ok" style="width:100%">わかった</button>
@@ -861,7 +861,7 @@ function about() {
     <div class="about" id="about">
       <h3>遊ぶうちに、楽譜の記号が身につく</h3>
       <p>音符・休符の長さ、ドレミと日本の音名（ハニホ）・英語の音名（CDE）、ト音記号の楽譜の音の高さ、強弱・速さ・演奏のしかた・くり返しの記号。小学校・中学校の音楽で習う「音符、休符、記号や用語」を、4つから選んで覚えます。</p>
-      <p>拍は、4分音符を1拍として数えます（4分の2・3・4拍子）。付点は、もとの長さの半分を足します。意味の近い記号（decresc. と dim.、rit. と rall. など）は、同じ問題の選び肢にいっしょには出しません。</p>
+      <p>拍は、4分音符を1拍として数えます（4分の2・3・4拍子）。付点は、もとの長さの半分を足します。意味の近い記号（decresc. と dim.、rit. と rall. など）は、同じ問題の選択肢にいっしょには出しません。</p>
       <h3>出典</h3>
       <ul>
         <li>強弱の記号：英語版 <a href="https://en.wikipedia.org/wiki/Dynamics_(music)" target="_blank" rel="noopener">Wikipedia「Dynamics (music)」</a>。</li>
